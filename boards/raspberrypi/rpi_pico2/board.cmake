@@ -1,5 +1,32 @@
 # SPDX-License-Identifier: Apache-2.0
 
+if(CONFIG_BUILD_WITH_TFM)
+  # West runners should flash the merged BL2 + TF-M + Zephyr image.
+  set_property(TARGET runners_yaml_props_target PROPERTY hex_file tfm_merged.hex)
+
+  if(DEFINED ZEPHYR_HAL_RPI_PICO_MODULE_DIR)
+    if("$ENV{PICO_SDK_PATH}" STREQUAL "")
+      set(ENV{PICO_SDK_PATH} ${ZEPHYR_HAL_RPI_PICO_MODULE_DIR})
+    endif()
+
+    if(NOT DEFINED PICO_SDK_PATH)
+      set(PICO_SDK_PATH ${ZEPHYR_HAL_RPI_PICO_MODULE_DIR})
+    endif()
+
+  endif()
+
+  set(RPI_PICO2_XIP_BASE 0x10000000)
+
+  if(CONFIG_HAS_FLASH_LOAD_OFFSET)
+    MATH(EXPR TFM_HEX_BASE_ADDRESS_NS "${RPI_PICO2_XIP_BASE}+${CONFIG_FLASH_LOAD_OFFSET}")
+  else()
+    set(TFM_HEX_BASE_ADDRESS_NS ${RPI_PICO2_XIP_BASE})
+  endif()
+
+  # Secure image base (BL2 header lives at 0x10011000 for TF-M rp2350 layout).
+  set(TFM_HEX_BASE_ADDRESS_S 0x10011000)
+endif()
+
 if("${RPI_PICO_DEBUG_ADAPTER}" STREQUAL "")
   set(RPI_PICO_DEBUG_ADAPTER "cmsis-dap")
 endif()

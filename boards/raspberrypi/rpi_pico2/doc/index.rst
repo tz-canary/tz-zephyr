@@ -63,6 +63,29 @@ The blinky sample is not yet supported on Pico 2W, so try the :zephyr:code-sampl
     :goals: build flash
     :flash-args: --openocd /usr/local/bin/openocd
 
+TF-M Integration
+================
+
+Zephyr also provides a non-secure TF-M variant, :zephyr:board:`rpi_pico2/rp2350a/m33/ns`.  This board:
+
+- Highlights the RP2350 flash layout expected by TF-M (non-secure image starts at ``0x10071000``).
+- Restricts Zephyr's SRAM view to the 256 KB that belongs to the non-secure world.
+- Enables :kconfig:option:`CONFIG_BUILD_WITH_TFM` with the TF-M ``profile_medium`` configuration and the IPC service model.
+- Auto-populates ``PICO_SDK_PATH`` with the Pico SDK that ships with Zephyr (``modules/hal/rpi_pico``) when the environment variable is unset, so no additional setup is required.
+
+.. note::
+
+   ``CONFIG_TFM_PARTITION_INITIAL_ATTESTATION`` is intentionally left disabled for this board because upstream TF-M currently blocks that partition (see the CMake error message emitted when it is enabled).
+
+Building TF-M + Zephyr IPC sample:
+
+.. zephyr-app-commands::
+    :zephyr-app: samples/tfm_integration/tfm_ipc
+    :board: rpi_pico2/rp2350a/m33/ns
+    :goals: build
+
+After the build completes, TF-M artifacts are located under ``build/tfm`` and the merged BL2+TF-M+Zephyr image is ``build/zephyr/tfm_merged.hex``.  This hex file is selected automatically when flashing via any of the standard runners (:program:`openocd`, :program:`probe-rs`, etc.).
+
 References
 **********
 

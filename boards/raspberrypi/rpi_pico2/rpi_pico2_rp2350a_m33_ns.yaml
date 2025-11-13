@@ -1,0 +1,16 @@
+identifier: rpi_pico2/rp2350a/m33/ns
+name: Raspberry Pi Pico 2 (RP2350) Cortex-M33 Non-Secure
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+ram: 256
+flash: 2048
+vendor: raspberrypi
+features:
+  - arm_trustzone
+  - tfm
+  - non-secure
+supported:
+  - samples/tfm_integration/tfm_ipc
