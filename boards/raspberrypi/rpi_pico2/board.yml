@@ -12,3 +12,5 @@ board:
               cpucluster: m33
         - name: mcuboot
           cpucluster: m33
+        - name: ns
+          cpucluster: m33

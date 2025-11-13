@@ -1,0 +1,79 @@
+/*
+ * Copyright (c) 2025 The Zephyr Project Developers
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include "rpi_pico2_rp2350a_m33.dts"
+
+/ {
+	chosen {
+		zephyr,code-partition = &slot0_ns_partition;
+	};
+};
+
+&sram0 {
+	/* Non-secure firmware owns SRAM banks 4-7 (256 KB total). */
+	reg = <0x20040000 0x00040000>;
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 0x00011000>;
+			read-only;
+		};
+
+		slot0_partition: partition@11000 {
+			label = "image-0-secure";
+			reg = <0x00011000 0x00060000>;
+		};
+
+		slot0_ns_partition: partition@71000 {
+			label = "image-0-nonsecure";
+			reg = <0x00071000 0x00060000>;
+		};
+
+		slot1_partition: partition@d1000 {
+			label = "image-1-secure";
+			reg = <0x000d1000 0x00060000>;
+		};
+
+		slot1_ns_partition: partition@131000 {
+			label = "image-1-nonsecure";
+			reg = <0x00131000 0x00060000>;
+		};
+
+		scratch_partition: partition@191000 {
+			label = "scratch";
+			reg = <0x00191000 0x00008000>;
+		};
+
+		ps_storage_partition: partition@199000 {
+			label = "ps";
+			reg = <0x00199000 0x00002000>;
+		};
+
+		its_storage_partition: partition@19b000 {
+			label = "its";
+			reg = <0x0019b000 0x00002000>;
+		};
+
+		otp_partition: partition@19d000 {
+			label = "otp_nv_counters";
+			reg = <0x0019d000 0x00002000>;
+		};
+
+		provisioning_partition: partition@19f000 {
+			label = "provisioning";
+			reg = <0x0019f000 0x00061000>;
+		};
+	};
+};

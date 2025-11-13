@@ -412,6 +412,7 @@ if(CONFIG_BUILD_WITH_TFM)
   target_include_directories(tfm_api PUBLIC
     ${TFM_INTERFACE_INCLUDE_DIR}
     ${TFM_INTERFACE_INCLUDE_DIR}/crypto_keys
+    ${TFM_BINARY_DIR}/api_ns/platform/include
     ${ZEPHYR_BASE}/modules/mbedtls/configs
     )
   # Pass down the MbedTLS configuration file to use.
