@@ -552,19 +552,26 @@ static int pl011_init(const struct device *dev)
 	uart = get_uart(dev);
 
 #if defined(CONFIG_RESET)
-	if (config->reset.dev) {
-		ret = reset_line_toggle_dt(&config->reset);
-		if (ret) {
-			return ret;
-		}
-	}
+    if (config->reset.dev) {
+#if IS_ENABLED(CONFIG_BUILD_WITH_TFM) || IS_ENABLED(CONFIG_TRUSTED_EXECUTION_NONSECURE) || IS_ENABLED(CONFIG_ARM_NONSECURE_FIRMWARE)
+#else
+        ret = reset_line_toggle_dt(&config->reset);
+        if (ret) {
+            return ret;
+        }
+#endif
+    }
 #endif
 
 #if defined(CONFIG_CLOCK_CONTROL)
-	if (config->clock_dev) {
-		clock_control_on(config->clock_dev, config->clock_id);
-		clock_control_get_rate(config->clock_dev, config->clock_id, &data->clk_freq);
-	}
+    if (config->clock_dev) {
+#if IS_ENABLED(CONFIG_BUILD_WITH_TFM) || IS_ENABLED(CONFIG_TRUSTED_EXECUTION_NONSECURE) || IS_ENABLED(CONFIG_ARM_NONSECURE_FIRMWARE)
+        data->clk_freq = 0;
+#else
+        clock_control_on(config->clock_dev, config->clock_id);
+        clock_control_get_rate(config->clock_dev, config->clock_id, &data->clk_freq);
+#endif
+    }
 #endif
 
 	/*

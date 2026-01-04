@@ -658,27 +658,70 @@ static int clock_control_rpi_pico_init(const struct device *dev)
 	uint32_t rosc_div;
 	int ret;
 
-	/* Reset all function before clock configuring */
-	reset_block(~(RESETS_RESET_IO_QSPI_BITS | RESETS_RESET_PADS_QSPI_BITS |
-		      RESETS_RESET_PLL_USB_BITS | RESETS_RESET_USBCTRL_BITS |
-		      RESETS_RESET_SYSCFG_BITS | RESETS_RESET_PLL_SYS_BITS));
+#if IS_ENABLED(CONFIG_BUILD_WITH_TFM) || IS_ENABLED(CONFIG_TRUSTED_EXECUTION_NONSECURE) || IS_ENABLED(CONFIG_ARM_NONSECURE_FIRMWARE)
+	//clocks_regs->resus.ctrl = 0;
 
-	unreset_block_wait(RESETS_RESET_BITS &
-			   ~(RESETS_RESET_ADC_BITS |
-#if defined(RESETS_RESET_RTC_BITS)
-			     RESETS_RESET_RTC_BITS |
-#endif
+	ret = pinctrl_apply_state(config->pcfg, PINCTRL_STATE_DEFAULT);
+	if (ret < 0 && ret != -ENOENT) {
+		return ret;
+	}
+
+	return 0;
+#else
+	/* Reset all function before clock configuring */
+	//reset_block(~(RESETS_RESET_IO_QSPI_BITS | RESETS_RESET_PADS_QSPI_BITS |
+	//	      RESETS_RESET_PLL_USB_BITS | RESETS_RESET_USBCTRL_BITS |
+	//	      RESETS_RESET_SYSCFG_BITS | RESETS_RESET_PLL_SYS_BITS));
+
+	reset_block(~(
+		  RESETS_RESET_IO_QSPI_BITS
+		| RESETS_RESET_PADS_QSPI_BITS
+		| RESETS_RESET_PADS_BANK0_BITS   /* 추가: NS에서 GPIO/LED 위해 패드 유지 */
+		| RESETS_RESET_IO_BANK0_BITS     /* 추가: NS에서 GPIO/LED 위해 IO뱅크 유지 */
+		| RESETS_RESET_SYSCFG_BITS
+		| RESETS_RESET_PLL_SYS_BITS
+		| RESETS_RESET_PLL_USB_BITS
+		| RESETS_RESET_JTAG_BITS
+		| RESETS_RESET_BUSCTRL_BITS
+		| RESETS_RESET_TRNG_BITS
+		| RESETS_RESET_USBCTRL_BITS
+	));
+
+	unreset_block_wait(
+		//  (1u << 25) /* TRNG */  //
+		  (1u << 24) /* TIMER1 */
+		| (1u << 23) /* TIMER0 */
+		| (1u << 22) /* TBMAN */
+		| (1u << 21) /* SYSINFO */
+		// | (1u << 20) /* SYSCFG */  //
+		| (1u << 17) /* SHA256 */
+		| (1u << 16) /* PWM */
+		// | (1u << 15) /* PLL_USB */ //
+		// | (1u << 14) /* PLL_SYS */ //
+		| (1u << 13) /* PIO2 */
+		| (1u << 12) /* PIO1 */
+		| (1u << 11) /* PIO0 */
+		| (1u << 10) /* PADS_QSPI */
+		| (1u << 9)  /* PADS_BANK0 */
+		// | (1u << 8)  /* JTAG */
+		| (1u << 7)  /* IO_QSPI */
+		| (1u << 6)  /* IO_BANK0 */
+		| (1u << 5)  /* I2C1 */
+		| (1u << 4)  /* I2C0 */
+		| (1u << 2)  /* DMA */
+		//| (1u << 1)  /* BUSCTRL */
 #if defined(RESETS_RESET_HSTX_BITS)
-			     RESETS_RESET_HSTX_BITS |
+		| (1u << 3)  /* HSTX */
 #endif
-			     RESETS_RESET_SPI0_BITS | RESETS_RESET_SPI1_BITS |
-			     RESETS_RESET_UART0_BITS | RESETS_RESET_UART1_BITS |
-			     RESETS_RESET_USBCTRL_BITS));
+#if defined(RESETS_RESET_RTC_BITS)
+		| (1u << 15) /* RTC (RP2350엔 보통 없음, 있으면 비트 맞춰서 수정) */
+#endif
+	);
 
 	/* Start all the tick generators. */
-	for (tick_gen_num_t i = 0; i < TICK_COUNT; i++) {
-		tick_start(i, cycles_per_tick);
-	}
+	//for (tick_gen_num_t i = 0; i < TICK_COUNT; i++) {
+	//	tick_start(i, cycles_per_tick);
+	//}
 
 	clocks_regs->resus.ctrl = 0;
 
@@ -779,6 +822,7 @@ static int clock_control_rpi_pico_init(const struct device *dev)
 	}
 
 	return 0;
+#endif
 }
 
 static DEVICE_API(clock_control, clock_control_rpi_pico_api) = {
